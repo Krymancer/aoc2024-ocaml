@@ -30,17 +30,53 @@ let rec sum = function
   | [] -> 0
   | h :: t -> h + sum t
 
-let part1 input =
-  let safes = input
+let is_report_safe report = 
+  report
+  |> is_stricly_monotonic
+
+let part1 input = 
+  input
   |> sanitize_input
   |> List.map get_list_from_line
-  |> List.map is_stricly_monotonic
-  |> List.map int_of_bool in
-  string_of_int (sum safes)
-  
+  |> List.map is_report_safe 
+  |> List.map int_of_bool
+  |> sum
+  |> string_of_int 
 
-let part2 (_ : string) : string =
-  failwith "TODO"
+let remove_index i list =
+  let rec aux index acc = function
+    | [] -> List.rev acc
+    | h :: t ->
+        if index = i then
+          List.rev acc @ t
+        else
+          aux (index + 1) (h :: acc) t
+  in
+  aux 0 [] list
+
+let is_report_safe_with_damping report = 
+  if is_report_safe report then
+    true
+  else
+    let n = List.length report in
+    let rec attempt_removal i =
+      if i >= n then
+        false
+      else
+        let modified = remove_index i report in
+        if is_report_safe modified then true
+        else attempt_removal (i + 1)
+    in
+    attempt_removal 0
+
+let part2 input =
+  input
+  |> sanitize_input
+  |> List.map get_list_from_line
+  |> List.map is_report_safe_with_damping 
+  |> List.map int_of_bool
+  |> sum
+  |> string_of_int 
 
 let solve lines = 
   print_endline (part1 lines);
